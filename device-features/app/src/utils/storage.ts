@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { TravelEntry } from "../types";
+import  TravelEntry  from "../types";
 
 const STORAGE_KEY = "TRAVEL_ENTRIES";
 

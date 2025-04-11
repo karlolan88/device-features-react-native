@@ -4,7 +4,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import { saveEntries, loadEntries } from "../utils/storage";
-import { TravelEntry } from "../types";
+import  TravelEntry  from "../types";
 import uuid from "react-native-uuid";
 import { useNavigation } from "@react-navigation/native";
 
@@ -13,19 +13,30 @@ const AddEntryScreen = () => {
   const [address, setAddress] = useState<string>("");
   const navigation = useNavigation();
 
+  // Request permissions on initial load
   useEffect(() => {
     (async () => {
-      await ImagePicker.requestCameraPermissionsAsync();
-      await Location.requestForegroundPermissionsAsync();
-      await Notifications.requestPermissionsAsync();
+      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+      const locationPermission = await Location.requestForegroundPermissionsAsync();
+      const notificationsPermission = await Notifications.requestPermissionsAsync();
+
+      if (
+        cameraPermission.status !== "granted" ||
+        locationPermission.status !== "granted" ||
+        notificationsPermission.status !== "granted"
+      ) {
+        Alert.alert("Permissions needed", "Please allow all permissions to use the app.");
+      }
     })();
   }, []);
 
+  // Function to take a photo and get the address
   const takePhoto = async () => {
     const result = await ImagePicker.launchCameraAsync({ quality: 1 });
     if (!result.canceled && result.assets.length > 0) {
       const uri = result.assets[0].uri;
       setImageUri(uri);
+
       const location = await Location.getCurrentPositionAsync({});
       const geo = await Location.reverseGeocodeAsync(location.coords);
       const addr = geo[0];
@@ -33,17 +44,24 @@ const AddEntryScreen = () => {
     }
   };
 
+  // Save entry with photo and address
   const saveEntry = async () => {
-    if (!imageUri || !address) return;
+    if (!imageUri || !address) {
+      Alert.alert("Missing Information", "Please add a photo and ensure address is set.");
+      return;
+    }
+
     const newEntry: TravelEntry = {
       id: uuid.v4().toString(),
       imageUri,
       address,
     };
+
     const existing = await loadEntries();
     const updated = [...existing, newEntry];
     await saveEntries(updated);
 
+    // Schedule a notification to confirm save
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "New Travel Entry Saved!",
@@ -80,7 +98,7 @@ const styles = StyleSheet.create({
   text: { fontSize: 16, marginBottom: 10 },
   takeBtn: { backgroundColor: "#2196F3", padding: 12, borderRadius: 8 },
   takeText: { color: "#fff", textAlign: "center" },
-  saveBtn: { backgroundColor: "#4CAF50", padding: 12, borderRadius: 8 },
+  saveBtn: { backgroundColor: "#4CAF50", padding: 12, borderRadius: 8, marginTop: 16 },
   saveText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
 });
 

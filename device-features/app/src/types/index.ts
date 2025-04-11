@@ -1,4 +1,4 @@
-export interface TravelEntry {
+export default interface TravelEntry {
     id: string;
     imageUri: string;
     address: string;

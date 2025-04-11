@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
-import { TravelEntry } from "../types";
+import  TravelEntry from "../types";
 
 interface Props {
   entry: TravelEntry;

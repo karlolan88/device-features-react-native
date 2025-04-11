@@ -1,14 +1,8 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  FlatList,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import { View, FlatList, Text, StyleSheet, TouchableOpacity } from "react-native";
 import EntryItem from "../components/EntryItem";
 import { loadEntries, saveEntries } from "../utils/storage";
-import { TravelEntry } from "../types";
+import  TravelEntry  from "../types";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
@@ -16,21 +10,27 @@ import { RootStackParamList } from "../types/navigation";
 const HomeScreen = () => {
   const [entries, setEntries] = useState<TravelEntry[]>([]);
   const isFocused = useIsFocused();
-
   const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    useNavigation<NativeStackNavigationProp<RootStackParamList, "Home">>();
 
+  // Load entries from AsyncStorage when screen is focused
   useEffect(() => {
+    const fetchEntries = async () => {
+      const stored = await loadEntries();
+      setEntries(stored);
+    };
+
     if (isFocused) {
-      loadEntries().then(setEntries);
+      fetchEntries();
     }
   }, [isFocused]);
 
-  const removeEntry = (id: string) => {
+  // Remove entry by ID
+  const removeEntry = useCallback(async (id: string) => {
     const updated = entries.filter((e) => e.id !== id);
     setEntries(updated);
-    saveEntries(updated);
-  };
+    await saveEntries(updated);
+  }, [entries]);
 
   return (
     <View style={styles.container}>
